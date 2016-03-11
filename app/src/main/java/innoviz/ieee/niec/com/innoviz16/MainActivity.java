@@ -1,136 +1,71 @@
-package innoviz.ieee.niec.com.innoviz16;
+package com.niec.ieee.innoviz;
 
 import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
-import android.support.design.widget.Snackbar;
-import android.support.design.widget.TabLayout;
+import android.os.PersistableBundle;
 import android.support.v4.app.Fragment;
-import android.support.v4.app.FragmentManager;
-import android.support.v4.app.FragmentPagerAdapter;
-import android.support.v4.view.ViewPager;
-import android.view.View;
+import android.support.v4.app.FragmentActivity;
 import android.support.v7.app.AppCompatActivity;
-import android.support.v7.widget.Toolbar;
-import android.view.Menu;
-import android.view.MenuItem;
 
-import innoviz.ieee.niec.com.innoviz16.Frags.HomeFragment;
-import innoviz.ieee.niec.com.innoviz16.Frags.PostFragment;
-import innoviz.ieee.niec.com.innoviz16.Frags.SignInfragment;
-import innoviz.ieee.niec.com.innoviz16.Frags.TAB2;
-import innoviz.ieee.niec.com.innoviz16.Frags.TAB3;
-
-public class MainActivity extends AppCompatActivity
-        {
-            private ViewPager mViewPager;
-            private SectionsPagerAdapter mSectionsPagerAdapter;
+import com.facebook.appevents.AppEventsLogger;
+import com.google.android.gms.auth.api.Auth;
+import com.google.android.gms.auth.api.signin.GoogleSignInResult;
 
 
-            @Override
-    protected void onCreate(Bundle savedInstanceState) {
+public class MainActivity extends AppCompatActivity {
+
+    private  facebookfragment fb;
+    private  googlefragment gl;
+    //private loginfragment ln;
+
+    @Override
+    public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
-        Toolbar toolbar = (Toolbar) findViewById(R.id.app_bar);
-        setSupportActionBar(toolbar);
-        getSupportActionBar().setDisplayShowHomeEnabled(true);
-
-
-
-        mSectionsPagerAdapter=new SectionsPagerAdapter(getSupportFragmentManager());
-                mViewPager=(ViewPager)findViewById(R.id.container);
-                mViewPager.setAdapter(mSectionsPagerAdapter);
-                TabLayout tabLayout=(TabLayout)findViewById(R.id.tabs);
-                tabLayout.setupWithViewPager(mViewPager);
-
-    }
-
-
-            /************************************************************/
-
-            public class SectionsPagerAdapter extends FragmentPagerAdapter {
-
-                public SectionsPagerAdapter(FragmentManager fm) {
-                    super(fm);
-                }
-
-                @Override
-                public Fragment getItem(int position) {
-                    // getItem is called to instantiate the fragment for the given page.
-                    // Return a PlaceholderFragment (defined as a static inner class below).
-                    switch (position) {
-                        case 0:
-                            HomeFragment home=new HomeFragment();
-                            return home;
-                        case 1:
-
-                            PostFragment post=new PostFragment();
-                            return post;
-
-                        case 2: TAB2 tab2 = new TAB2();
-                            return tab2;
-                        case 3:
-                            TAB3 tab3= new TAB3();
-                            return tab3;
-                        case 4:
-
-                        SignInfragment signIn= new SignInfragment();
-                        return signIn;
-
-                    }
-
-                    return null;
-                }
-
-                @Override
-                public int getCount() {
-                    // Show 2 total pages.
-                    return 5;
-                }
-
-                @Override
-                public CharSequence getPageTitle(int position) {
-                    switch (position) {
-                        case 0:
-                            return "Home";
-                        case 1:
-                            return "Post";
-                        case 2 :
-                            return "TAB 2";
-                        case 3:
-                            return "TAB 3";
-                        case 4:
-                            return "SIGN IN";
-                    }
-                    return null;
-                }
-            }
-
-
-
-            /************************************************************/
-
-
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        // Inflate the menu; this adds items to the action bar if it is present.
-        getMenuInflater().inflate(R.menu.main, menu);
-        return true;
-    }
-
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        // Handle action bar item clicks here. The action bar will
-        // automatically handle clicks on the Home/Up button, so long
-        // as you specify a parent activity in AndroidManifest.xml.
-        int id = item.getItemId();
-
-        //noinspection SimplifiableIfStatement
-        if (id == R.id.action_settings) {
-            return true;
+        if(savedInstanceState==null)
+        {
+            fb= new facebookfragment();
+            gl= new googlefragment();
+            getSupportFragmentManager().beginTransaction().add(android.R.id.content, fb).commit();
+            getSupportFragmentManager().beginTransaction().add(android.R.id.content, gl).commit();
         }
+        else
+        {
+            fb= (facebookfragment) getSupportFragmentManager().findFragmentById(android.R.id.content);
+            gl= (googlefragment) getSupportFragmentManager().findFragmentById(android.R.id.content);
+        }
+    }
 
-        return super.onOptionsItemSelected(item);
+
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        AppEventsLogger.activateApp(this);
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        AppEventsLogger.deactivateApp(this);
+    }
+
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        fb.callbackManager.onActivityResult(requestCode, resultCode, data);
+        if(resultCode==RESULT_OK) {
+            if (requestCode == gl.RC_SIGN_IN) {
+                GoogleSignInResult result = Auth.GoogleSignInApi.getSignInResultFromIntent(data);
+                gl.handleSignInResult(result);
+
+            }
+        }
     }
 
 
 }
+
+
+
+
